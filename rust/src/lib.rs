@@ -24,7 +24,11 @@ impl Browser {
         }
     }
 
-    fn borrow_c<'a>(browser: *mut Browser) -> &'a Browser {
+    /// Take an externally-owned `Browser` and non-destructively borrow a reference to it.
+    ///
+    /// **Note**: This will *not* deallocate the instance passed in. So it is safe to call this
+    /// over and over again.
+    fn borrow_from_c<'a>(browser: *const Browser) -> &'a Browser {
         unsafe { mem::transmute(browser) }
     }
 
@@ -45,24 +49,23 @@ pub extern "C" fn parse_browser(cstring: *const c_char) -> *const Browser {
     Box::into_raw(Box::new(browser))
 }
 
+/// Take back ownership of an externally-owned `Browser` and destructively deallocate it.
 #[no_mangle]
 pub extern "C" fn free_browser(browser: *mut Browser) {
-    unsafe {
-        drop(Box::from_raw(browser));
-    }
+    drop(unsafe { Box::from_raw(browser) })
 }
 
 #[no_mangle]
-pub extern "C" fn is_opera(browser: *mut Browser) -> bool {
-    Browser::borrow_c(browser).is_opera
+pub extern "C" fn is_opera(browser: *const Browser) -> bool {
+    Browser::borrow_from_c(browser).is_opera
 }
 
 #[no_mangle]
-pub extern "C" fn is_chrome(browser: *mut Browser) -> bool {
-    Browser::borrow_c(browser).is_chrome
+pub extern "C" fn is_chrome(browser: *const Browser) -> bool {
+    Browser::borrow_from_c(browser).is_chrome
 }
 
 #[no_mangle]
-pub extern "C" fn is_edge(browser: *mut Browser) -> bool {
-    Browser::borrow_c(browser).is_edge
+pub extern "C" fn is_edge(browser: *const Browser) -> bool {
+    Browser::borrow_from_c(browser).is_edge
 }
