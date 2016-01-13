@@ -1,0 +1,14 @@
+[package]
+name = "fast_browser"
+version = "0.0.1"
+authors = []
+
+[lib]
+name = "fast_browser"
+crate-type = ["dylib"]
+
+[dependencies]
+libc = "0.2"
+
+# [dependencies.rlibc]
+# git = "https://github.com/rust-lang/rlibc"
