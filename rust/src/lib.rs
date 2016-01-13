@@ -2,7 +2,7 @@ extern crate libc;
 extern crate regex;
 
 use libc::c_char;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::mem;
 use std::str::FromStr;
 use regex::Regex;
@@ -156,4 +156,24 @@ pub extern "C" fn get_browser_major_version(ua: *const UserAgent) -> i8 {
 #[no_mangle]
 pub extern "C" fn get_browser_minor_version(ua: *const UserAgent) -> i8 {
     UserAgent::borrow_from_c(ua).browser.minor_version
+}
+
+#[no_mangle]
+pub extern "C" fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
+    let ua = UserAgent::borrow_from_c(ua);
+
+    let family = match ua.browser.family {
+        BrowserFamily::Chrome  => "Chrome",
+        BrowserFamily::Edge    => "Edge",
+        BrowserFamily::Firefox => "Firefox",
+        BrowserFamily::Opera   => "Opera",
+        BrowserFamily::Other   => "Other",
+    };
+
+    CString::new(family).unwrap().into_raw()
+}
+
+#[no_mangle]
+pub extern "C" fn free_string(string: *mut c_char) {
+    drop(unsafe { CString::from_raw(string) })
 }

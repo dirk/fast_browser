@@ -13,6 +13,17 @@ class FastBrowser
 
     attach_function :get_browser_minor_version, [:pointer], :int8
     attach_function :get_browser_major_version, [:pointer], :int8
+    attach_function :get_browser_family, [:pointer], :strptr
+    attach_function :free_string, [:pointer], :void
+
+    # Sends the given method name (`method`) to self, copies the returned
+    # string into a Ruby string and then calls `.free_string` to deallocate
+    # the original returned string.
+    def self.call_and_free_string method, *args
+      string, ptr = self.send method, *args
+      self.free_string ptr
+      string
+    end
   end
 
   def initialize(string)
@@ -22,4 +33,8 @@ class FastBrowser
   def opera?;  RustLib.is_opera(@pointer)  end
   def chrome?; RustLib.is_chrome(@pointer) end
   def edge?;   RustLib.is_edge(@pointer)   end
+
+  def family
+    RustLib.call_and_free_string :get_browser_family, @pointer
+  end
 end
