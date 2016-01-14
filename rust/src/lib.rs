@@ -49,10 +49,10 @@ impl Browser {
         let mut major_version = 0;
         let mut minor_version = 0;
 
-        let is_opera                      = Browser::is_opera(ua);
-        let is_edge                       = Browser::is_edge(ua);
-        let is_chrome                     = ua.contains("Chrome") && !is_opera && !is_edge;
-        let (is_firefox, firefox_version) = Browser::match_firefox(ua);
+        let is_opera        = Browser::is_opera(ua);
+        let is_edge         = Browser::is_edge(ua);
+        let is_chrome       = ua.contains("Chrome") && !is_opera && !is_edge;
+        let matched_firefox = Browser::match_firefox(ua);
 
         let family =
             if is_chrome {
@@ -67,9 +67,9 @@ impl Browser {
             } else if is_opera {
                 BrowserFamily::Opera
 
-            } else if is_firefox {
-                major_version = firefox_version.unwrap().0;
-                minor_version = firefox_version.unwrap().1;
+            } else if let Some((major, minor)) = matched_firefox {
+                major_version = major;
+                minor_version = minor;
                 BrowserFamily::Firefox
 
             } else {
@@ -92,16 +92,16 @@ impl Browser {
     }
 
     /// Search for the Firefox componenet in the user agent and parse out the version if present.
-    pub fn match_firefox(ua: &str) -> (bool, Option<(i8, i8)>) {
+    pub fn match_firefox(ua: &str) -> Option<(i8, i8)> {
         let re = Regex::new(r"Firefox/(\d+)\.(\d+)").unwrap();
 
         match re.captures(ua) {
             Some(captures) => {
                 let major_version = i8::from_str(&captures[1]).unwrap();
                 let minor_version = i8::from_str(&captures[2]).unwrap();
-                (true, Some((major_version, minor_version)))
+                Some((major_version, minor_version))
             },
-            None => (false, None)
+            None => None,
         }
     }
 
@@ -176,4 +176,16 @@ pub extern "C" fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn free_string(string: *mut c_char) {
     drop(unsafe { CString::from_raw(string) })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Browser};
+
+    #[test]
+    fn test_match_firefox() {
+        let did_match = Browser::match_firefox("Firefox/1.2");
+
+        assert_eq!(did_match, Some((1, 2)))
+    }
 }
