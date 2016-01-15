@@ -42,6 +42,7 @@ enum BrowserFamily {
     Firefox,
     Opera,
     Safari,
+    MobileSafari,
     Other,
 }
 
@@ -76,7 +77,12 @@ impl Browser {
             } else if let Some((major, minor)) = matched_safari {
                 major_version = major;
                 minor_version = minor;
-                BrowserFamily::Safari
+
+                if ua.contains("Mobile/") {
+                    BrowserFamily::MobileSafari
+                } else {
+                    BrowserFamily::Safari
+                }
 
             } else {
                 BrowserFamily::Other
@@ -119,7 +125,7 @@ impl Browser {
     }
 
     pub fn match_safari(ua: &str) -> Option<(i8, i8)> {
-        let re = Regex::new(r"Version/(\d+)\.(\d+)(?:\.\d+)? Safari").unwrap();
+        let re = Regex::new(r"Version/(\d+)\.(\d+)(?:\.\d+)?(?: Mobile/\w+)? Safari").unwrap();
 
         re.captures(ua).map(|captures| {
             let major_version = i8::from_str(&captures[1]).unwrap();
@@ -164,6 +170,11 @@ pub extern "C" fn is_opera(ua: *const UserAgent) -> bool {
 }
 
 #[no_mangle]
+pub extern "C" fn is_safari(ua: *const UserAgent) -> bool {
+    UserAgent::borrow_from_c(ua).browser.family == BrowserFamily::Safari
+}
+
+#[no_mangle]
 pub extern "C" fn get_browser_major_version(ua: *const UserAgent) -> i8 {
     UserAgent::borrow_from_c(ua).browser.major_version
 }
@@ -178,12 +189,13 @@ pub extern "C" fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
     let ua = UserAgent::borrow_from_c(ua);
 
     let family = match ua.browser.family {
-        BrowserFamily::Chrome  => "Chrome",
-        BrowserFamily::Edge    => "Edge",
-        BrowserFamily::Firefox => "Firefox",
-        BrowserFamily::Opera   => "Opera",
-        BrowserFamily::Safari  => "Safari",
-        BrowserFamily::Other   => "Other",
+        BrowserFamily::Chrome       => "Chrome",
+        BrowserFamily::Edge         => "Edge",
+        BrowserFamily::Firefox      => "Firefox",
+        BrowserFamily::Opera        => "Opera",
+        BrowserFamily::Safari       => "Safari",
+        BrowserFamily::MobileSafari => "Mobile Safari",
+        BrowserFamily::Other        => "Other",
     };
 
     CString::new(family).unwrap().into_raw()
@@ -216,6 +228,6 @@ mod tests {
         assert_eq!(version5, Some((5, 0)));
 
         let mobile_version6 = Browser::match_safari("Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5355d Safari/8536.25");
-        assert_eq!(mobile_version6, None)
+        assert_eq!(mobile_version6, Some((6, 0)))
     }
 }

@@ -10,6 +10,3 @@ crate-type = ["dylib"]
 [dependencies]
 libc = "0.2"
 regex = "0.1.46"
-
-# [dependencies.rlibc]
-# git = "https://github.com/rust-lang/rlibc"

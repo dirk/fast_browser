@@ -3,11 +3,13 @@ require 'ffi'
 class FastBrowser
   module RustLib
     extend FFI::Library
-    ffi_lib File.expand_path('../../rust/target/debug/libfast_browser.dylib', __FILE__)
+
+    lib_file = "libfast_browser.#{FFI::Platform::LIBSUFFIX}"
+    ffi_lib File.expand_path("../../rust/target/debug/#{lib_file}", __FILE__)
 
     attach_function :parse_user_agent, [:string], :pointer
 
-    %w(chrome edge opera).each do |tester|
+    %w(chrome edge firefox opera safari).each do |tester|
       attach_function "is_#{tester}".to_sym, [:pointer], :bool
     end
 
@@ -30,9 +32,14 @@ class FastBrowser
     @pointer = RustLib.parse_user_agent(string)
   end
 
-  def opera?;  RustLib.is_opera(@pointer)  end
-  def chrome?; RustLib.is_chrome(@pointer) end
-  def edge?;   RustLib.is_edge(@pointer)   end
+  def chrome?;  RustLib.is_chrome(@pointer)  end
+  def edge?;    RustLib.is_edge(@pointer)    end
+  def firefox?; RustLib.is_firefox(@pointer) end
+  def opera?;   RustLib.is_opera(@pointer)   end
+  def safari?;  RustLib.is_safari(@pointer)  end
+
+  def major_version; RustLib.get_browser_major_version(@pointer) end
+  def minor_version; RustLib.get_browser_minor_version(@pointer) end
 
   def family
     RustLib.call_and_free_string :get_browser_family, @pointer
