@@ -1,5 +1,7 @@
 require 'ffi'
 
+require 'fast_browser/version'
+
 class FastBrowser
   module RustLib
     extend FFI::Library

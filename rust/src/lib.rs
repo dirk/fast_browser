@@ -184,6 +184,7 @@ pub extern "C" fn get_browser_minor_version(ua: *const UserAgent) -> i8 {
     UserAgent::borrow_from_c(ua).browser.minor_version
 }
 
+/// Returns the user agent's browser family name as a heap-allocated `CString`
 #[no_mangle]
 pub extern "C" fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
     let ua = UserAgent::borrow_from_c(ua);
@@ -201,6 +202,7 @@ pub extern "C" fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
     CString::new(family).unwrap().into_raw()
 }
 
+/// Free a `CString` pointer owned by Rust
 #[no_mangle]
 pub extern "C" fn free_string(string: *mut c_char) {
     drop(unsafe { CString::from_raw(string) })
