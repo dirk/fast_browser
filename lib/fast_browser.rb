@@ -1,15 +1,15 @@
 require 'ffi'
 
 require 'fast_browser/version'
+require 'fast_browser/library_extensions'
 
 class FastBrowser
   module RustLib
     extend FFI::Library
+    extend LibraryExtensions
 
     lib_file = "libfast_browser.#{FFI::Platform::LIBSUFFIX}"
     ffi_lib File.expand_path("../../rust/target/debug/#{lib_file}", __FILE__)
-
-    attach_function :parse_user_agent, [:string], :pointer
 
     %w(chrome edge firefox opera safari).each do |tester|
       attach_function "is_#{tester}".to_sym, [:pointer], :bool
@@ -17,16 +17,28 @@ class FastBrowser
 
     attach_function :get_browser_minor_version, [:pointer], :int8
     attach_function :get_browser_major_version, [:pointer], :int8
-    attach_function :get_browser_family, [:pointer], :strptr
-    attach_function :free_string, [:pointer], :void
+
+    attach_string_returning_function :get_browser_family, [:pointer]
+
+    # Private Rust methods; don't call these directly!
+    attach_function :_parse_user_agent, :parse_user_agent, [:string], :pointer
+    attach_function :_free_user_agent,  :free_user_agent, [:pointer], :void
+    attach_function :_free_string,      :free_string, [:pointer], :void
 
     # Sends the given method name (`method`) to self, copies the returned
     # string into a Ruby string and then calls `.free_string` to deallocate
     # the original returned string.
     def self.call_and_free_string method, *args
-      string, ptr = self.send method, *args
-      self.free_string ptr
+      string, ptr = send method, *args
+      _free_string ptr
       string
+    end
+
+    def self.parse_user_agent string
+      FFI::AutoPointer.new(
+        self._parse_user_agent(string),
+        self.method(:_free_user_agent)
+      )
     end
   end
 
@@ -42,8 +54,5 @@ class FastBrowser
 
   def major_version; RustLib.get_browser_major_version(@pointer) end
   def minor_version; RustLib.get_browser_minor_version(@pointer) end
-
-  def family
-    RustLib.call_and_free_string :get_browser_family, @pointer
-  end
+  def family;        RustLib.get_browser_family(@pointer) end
 end
