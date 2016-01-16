@@ -13,7 +13,7 @@ use self::browser::BrowserFamily;
 use self::user_agent::UserAgent;
 
 #[no_mangle]
-pub extern "C" fn parse_user_agent(cstring: *const c_char) -> *const UserAgent {
+pub extern fn parse_user_agent(cstring: *const c_char) -> *const UserAgent {
     let string  = unsafe { CStr::from_ptr(cstring) }.to_str().unwrap();
     let browser = UserAgent::parse(string);
 
@@ -22,48 +22,48 @@ pub extern "C" fn parse_user_agent(cstring: *const c_char) -> *const UserAgent {
 
 /// Take back ownership of an externally-owned `Browser` and destructively deallocate it.
 #[no_mangle]
-pub extern "C" fn free_user_agent(ua: *mut UserAgent) {
+pub extern fn free_user_agent(ua: *mut UserAgent) {
     drop(unsafe { Box::from_raw(ua) })
 }
 
 #[no_mangle]
-pub extern "C" fn is_chrome(ua: *const UserAgent) -> bool {
+pub extern fn is_chrome(ua: *const UserAgent) -> bool {
     UserAgent::borrow_from_c(ua).browser.family == BrowserFamily::Chrome
 }
 
 #[no_mangle]
-pub extern "C" fn is_edge(ua: *const UserAgent) -> bool {
+pub extern fn is_edge(ua: *const UserAgent) -> bool {
     UserAgent::borrow_from_c(ua).browser.family == BrowserFamily::Edge
 }
 
 #[no_mangle]
-pub extern "C" fn is_firefox(ua: *const UserAgent) -> bool {
+pub extern fn is_firefox(ua: *const UserAgent) -> bool {
     UserAgent::borrow_from_c(ua).browser.family == BrowserFamily::Firefox
 }
 
 #[no_mangle]
-pub extern "C" fn is_opera(ua: *const UserAgent) -> bool {
+pub extern fn is_opera(ua: *const UserAgent) -> bool {
     UserAgent::borrow_from_c(ua).browser.family == BrowserFamily::Opera
 }
 
 #[no_mangle]
-pub extern "C" fn is_safari(ua: *const UserAgent) -> bool {
+pub extern fn is_safari(ua: *const UserAgent) -> bool {
     UserAgent::borrow_from_c(ua).browser.family == BrowserFamily::Safari
 }
 
 #[no_mangle]
-pub extern "C" fn get_browser_major_version(ua: *const UserAgent) -> i8 {
+pub extern fn get_browser_major_version(ua: *const UserAgent) -> i8 {
     UserAgent::borrow_from_c(ua).browser.major_version
 }
 
 #[no_mangle]
-pub extern "C" fn get_browser_minor_version(ua: *const UserAgent) -> i8 {
+pub extern fn get_browser_minor_version(ua: *const UserAgent) -> i8 {
     UserAgent::borrow_from_c(ua).browser.minor_version
 }
 
 /// Returns the user agent's browser family name as a heap-allocated `CString`
 #[no_mangle]
-pub extern "C" fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
+pub extern fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
     let ua = UserAgent::borrow_from_c(ua);
 
     let family = match ua.browser.family {
@@ -81,7 +81,7 @@ pub extern "C" fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
 
 /// Free a `CString` pointer owned by Rust
 #[no_mangle]
-pub extern "C" fn free_string(string: *mut c_char) {
+pub extern fn free_string(string: *mut c_char) {
     drop(unsafe { CString::from_raw(string) })
 }
 
