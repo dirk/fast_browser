@@ -26,30 +26,20 @@ pub extern fn free_user_agent(ua: *mut UserAgent) {
     drop(unsafe { Box::from_raw(ua) })
 }
 
-#[no_mangle]
-pub extern fn is_chrome(ua: *const UserAgent) -> bool {
-    UserAgent::borrow_from_c(ua).browser.family == BrowserFamily::Chrome
+macro_rules! is_family {
+    ($function:ident, $family:path) => {
+        #[no_mangle]
+        pub extern fn $function(ua: *const UserAgent) -> bool {
+            UserAgent::borrow_from_c(ua).browser.family == $family
+        }
+    };
 }
 
-#[no_mangle]
-pub extern fn is_edge(ua: *const UserAgent) -> bool {
-    UserAgent::borrow_from_c(ua).browser.family == BrowserFamily::Edge
-}
-
-#[no_mangle]
-pub extern fn is_firefox(ua: *const UserAgent) -> bool {
-    UserAgent::borrow_from_c(ua).browser.family == BrowserFamily::Firefox
-}
-
-#[no_mangle]
-pub extern fn is_opera(ua: *const UserAgent) -> bool {
-    UserAgent::borrow_from_c(ua).browser.family == BrowserFamily::Opera
-}
-
-#[no_mangle]
-pub extern fn is_safari(ua: *const UserAgent) -> bool {
-    UserAgent::borrow_from_c(ua).browser.family == BrowserFamily::Safari
-}
+is_family!(is_chrome,  BrowserFamily::Chrome);
+is_family!(is_edge,    BrowserFamily::Edge);
+is_family!(is_firefox, BrowserFamily::Firefox);
+is_family!(is_opera,   BrowserFamily::Opera);
+is_family!(is_safari,  BrowserFamily::Safari);
 
 #[no_mangle]
 pub extern fn get_browser_major_version(ua: *const UserAgent) -> i8 {

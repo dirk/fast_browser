@@ -1,7 +1,7 @@
 use regex::{Captures, Regex};
 use std::str::FromStr;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum BrowserFamily {
     Chrome,
     Edge,
@@ -18,54 +18,59 @@ pub struct Browser {
     pub minor_version: i8,
 }
 
+type MatcherFn = Fn(&str) -> Option<(i8, i8)> + Sync;
+type Matcher = (BrowserFamily, Box<MatcherFn>);
+
+lazy_static! {
+    // NOTE: Order of tests is significant
+    static ref MATCH_SEQUENCE: Vec<Matcher> = vec![
+        (BrowserFamily::Opera,  Box::new(Browser::match_opera)),
+        (BrowserFamily::Edge,   Box::new(Browser::match_edge)),
+        (BrowserFamily::Chrome, Box::new(Browser::match_chrome)),
+    ];
+}
+
 impl Browser {
-    pub fn parse(ua: &str) -> Browser {
-        let mut versions: (i8, i8) = (0, 0);
-
-        let is_opera        = Browser::is_opera(ua);
-        let matched_edge    = Browser::match_edge(ua);
-        let matched_chrome  = if !is_opera && !matched_edge.is_some() { Browser::match_chrome(ua) } else { None };
-        let matched_firefox = Browser::match_firefox(ua);
-        let matched_safari  = if ua.contains("Safari") { Browser::match_safari(ua) } else { None };
-
-        let family =
-            if is_opera {
-                BrowserFamily::Opera
-
-            } else if let Some(v) = matched_edge {
-                versions = v;
-                BrowserFamily::Edge
-
-            } else if let Some(v) = matched_chrome {
-                versions = v;
-                BrowserFamily::Chrome
-
-            } else if let Some(v) = matched_firefox {
-                versions = v;
-                BrowserFamily::Firefox
-
-            } else if let Some(v) = matched_safari {
-                versions = v;
-
-                if ua.contains("Mobile/") {
-                    BrowserFamily::MobileSafari
-                } else {
-                    BrowserFamily::Safari
-                }
-
-            } else {
-                BrowserFamily::Other
-            };
-
+    fn new(family: BrowserFamily, versions: (i8, i8)) -> Browser {
         Browser {
-            family: family,
+            family:        family,
             major_version: versions.0,
             minor_version: versions.1,
         }
     }
 
-    fn is_opera(ua: &str) -> bool {
-        ua.contains("Opera") || ua.contains("OPR")
+    #[allow(unused_parens)]
+    pub fn parse(ua: &str) -> Browser {
+        // NOTE: Order of these tests is significant because browser vendors are terrible
+
+        for tuple in MATCH_SEQUENCE.iter() {
+            let &(ref family, ref matcher) = tuple;
+
+            if let Some(versions) = matcher(ua) {
+                return Browser::new(family.clone(), versions)
+            }
+        }
+
+        let matched_firefox = Browser::match_firefox(ua);
+        let matched_safari  = Browser::match_safari(ua);
+
+        return (
+            if let Some(versions) = matched_firefox {
+                Browser::new(BrowserFamily::Firefox, versions)
+
+            } else if let Some(versions) = matched_safari {
+                let family =
+                    if ua.contains("Mobile/") {
+                        BrowserFamily::MobileSafari
+                    } else {
+                        BrowserFamily::Safari
+                    };
+                Browser::new(family, versions)
+
+            } else {
+                Browser::new(BrowserFamily::Other, (0, 0))
+            }
+        )
     }
 
     /// Takes the first two capture groups from a regex result and turns them into a version
@@ -89,6 +94,7 @@ lazy_static! {
     static ref CHROME_REGEX: Regex  = Regex::new(r"(?:Chromium|Chrome)/(\d+)\.(\d+)").unwrap();
     static ref EDGE_REGEX: Regex    = Regex::new(r"Edge/(\d+)\.(\d+)").unwrap();
     static ref FIREFOX_REGEX: Regex = Regex::new(r"Firefox/(\d+)\.(\d+)").unwrap();
+    static ref OPERA_VERSION_REGEX: Regex = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
     static ref SAFARI_REGEX: Regex  = Regex::new(r"Version/(\d+)\.(\d+)(?:\.\d+)?(?: Mobile/\w+)? Safari").unwrap();
 }
 
@@ -106,7 +112,20 @@ impl Browser {
         Browser::match_versions(ua, &CHROME_REGEX)
     }
 
+    pub fn match_opera(ua: &str) -> Option<(i8, i8)> {
+        if !ua.contains("Opera") {
+            return None
+        }
+
+        Browser::match_versions(ua, &OPERA_VERSION_REGEX)
+    }
+
     pub fn match_safari(ua: &str) -> Option<(i8, i8)> {
+        // SAFARI_REGEX is sort of expensive so we shortcut it with a simple search first
+        if !ua.contains("Safari") {
+            return None
+        }
+
         Browser::match_versions(ua, &SAFARI_REGEX)
     }
 }
