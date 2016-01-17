@@ -30,7 +30,11 @@ macro_rules! is_family {
     ($function:ident, $family:path) => {
         #[no_mangle]
         pub extern fn $function(ua: *const UserAgent) -> bool {
-            UserAgent::borrow_from_c(ua).browser.family == $family
+            if let Some(ref browser) = UserAgent::borrow_from_c(ua).browser {
+                browser.family == $family
+            } else {
+                false
+            }
         }
     };
 }
@@ -43,28 +47,39 @@ is_family!(is_safari,  BrowserFamily::Safari);
 
 #[no_mangle]
 pub extern fn get_browser_major_version(ua: *const UserAgent) -> i8 {
-    UserAgent::borrow_from_c(ua).browser.major_version
+    if let Some(ref browser) = UserAgent::borrow_from_c(ua).browser {
+        browser.major_version
+    } else {
+        0
+    }
 }
 
 #[no_mangle]
 pub extern fn get_browser_minor_version(ua: *const UserAgent) -> i8 {
-    UserAgent::borrow_from_c(ua).browser.minor_version
+    if let Some(ref browser) = UserAgent::borrow_from_c(ua).browser {
+        browser.minor_version
+    } else {
+        0
+    }
 }
 
 /// Returns the user agent's browser family name as a heap-allocated `CString`
 #[no_mangle]
 pub extern fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
     let ua = UserAgent::borrow_from_c(ua);
+    let mut family = "";
 
-    let family = match ua.browser.family {
-        BrowserFamily::Chrome       => "Chrome",
-        BrowserFamily::Edge         => "Edge",
-        BrowserFamily::Firefox      => "Firefox",
-        BrowserFamily::Opera        => "Opera",
-        BrowserFamily::Safari       => "Safari",
-        BrowserFamily::MobileSafari => "Mobile Safari",
-        BrowserFamily::Other        => "Other",
-    };
+    if let Some(ref browser) = ua.browser {
+        family = match browser.family {
+            BrowserFamily::Chrome       => "Chrome",
+            BrowserFamily::Edge         => "Edge",
+            BrowserFamily::Firefox      => "Firefox",
+            BrowserFamily::Opera        => "Opera",
+            BrowserFamily::Safari       => "Safari",
+            BrowserFamily::MobileSafari => "Mobile Safari",
+            BrowserFamily::Other        => "Other",
+        }
+    }
 
     CString::new(family).unwrap().into_raw()
 }

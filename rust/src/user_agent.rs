@@ -2,7 +2,7 @@ use std::mem;
 use super::browser::Browser;
 
 pub struct UserAgent {
-    pub browser: Browser,
+    pub browser: Option<Browser>,
 }
 
 impl UserAgent {
@@ -10,7 +10,7 @@ impl UserAgent {
         let browser = Browser::parse(ua);
 
         UserAgent {
-            browser: browser,
+            browser: Some(browser),
         }
     }
 
