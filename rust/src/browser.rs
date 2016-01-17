@@ -12,7 +12,7 @@ pub enum BrowserFamily {
     Other,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Browser {
     pub family: BrowserFamily,
     pub major_version: i8,

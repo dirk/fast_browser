@@ -66,20 +66,22 @@ pub extern fn get_browser_minor_version(ua: *const UserAgent) -> i8 {
 /// Returns the user agent's browser family name as a heap-allocated `CString`
 #[no_mangle]
 pub extern fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
-    let ua = UserAgent::borrow_from_c(ua);
-    let mut family = "";
+    let ref browser = UserAgent::borrow_from_c(ua).browser;
 
-    if let Some(ref browser) = ua.browser {
-        family = match browser.family {
-            BrowserFamily::Chrome       => "Chrome",
-            BrowserFamily::Edge         => "Edge",
-            BrowserFamily::Firefox      => "Firefox",
-            BrowserFamily::Opera        => "Opera",
-            BrowserFamily::Safari       => "Safari",
-            BrowserFamily::MobileSafari => "Mobile Safari",
-            BrowserFamily::Other        => "Other",
-        }
-    }
+    let family =
+        if let &Some(ref browser) = browser {
+            match browser.family {
+                BrowserFamily::Chrome       => "Chrome",
+                BrowserFamily::Edge         => "Edge",
+                BrowserFamily::Firefox      => "Firefox",
+                BrowserFamily::Opera        => "Opera",
+                BrowserFamily::Safari       => "Safari",
+                BrowserFamily::MobileSafari => "Mobile Safari",
+                BrowserFamily::Other        => "Other",
+            }
+        } else {
+            ""
+        };
 
     CString::new(family).unwrap().into_raw()
 }
