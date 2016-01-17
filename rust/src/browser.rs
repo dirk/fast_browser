@@ -91,11 +91,11 @@ impl Browser {
 }
 
 lazy_static! {
-    static ref CHROME_REGEX: Regex  = Regex::new(r"(?:Chromium|Chrome)/(\d+)\.(\d+)").unwrap();
-    static ref EDGE_REGEX: Regex    = Regex::new(r"Edge/(\d+)\.(\d+)").unwrap();
-    static ref FIREFOX_REGEX: Regex = Regex::new(r"Firefox/(\d+)\.(\d+)").unwrap();
+    static ref CHROME_REGEX: Regex        = Regex::new(r"(?:Chromium|Chrome)/(\d+)\.(\d+)").unwrap();
+    static ref EDGE_REGEX: Regex          = Regex::new(r"Edge/(\d+)\.(\d+)").unwrap();
+    static ref FIREFOX_REGEX: Regex       = Regex::new(r"Firefox/(\d+)\.(\d+)").unwrap();
     static ref OPERA_VERSION_REGEX: Regex = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
-    static ref SAFARI_REGEX: Regex  = Regex::new(r"Version/(\d+)\.(\d+)(?:\.\d+)?(?: Mobile/\w+)? Safari").unwrap();
+    static ref SAFARI_REGEX: Regex        = Regex::new(r"Version/(\d+)\.(\d+)(?:\.\d+)?(?: Mobile/\w+)? Safari").unwrap();
 }
 
 impl Browser {
@@ -127,5 +127,40 @@ impl Browser {
         }
 
         Browser::match_versions(ua, &SAFARI_REGEX)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Browser;
+
+    #[test]
+    fn test_match_firefox() {
+        let did_match = Browser::match_firefox("Firefox/1.2");
+        assert_eq!(did_match, Some((1, 2)));
+
+        let didnt_match = Browser::match_firefox("NotFirefox/x.y");
+        assert_eq!(didnt_match, None)
+    }
+
+    #[test]
+    fn test_match_safari() {
+        let version7 = Browser::match_safari("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A");
+        assert_eq!(version7, Some((7, 0)));
+
+        let version5 = Browser::match_safari("Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us) AppleWebKit/534.1+ (KHTML, like Gecko) Version/5.0 Safari/533.16");
+        assert_eq!(version5, Some((5, 0)));
+
+        let mobile_version6 = Browser::match_safari("Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5355d Safari/8536.25");
+        assert_eq!(mobile_version6, Some((6, 0)))
+    }
+
+    #[test]
+    fn test_match_opera() {
+        let opera12 = Browser::match_opera("Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16");
+        assert_eq!(opera12, Some((12, 16)));
+
+        let opera11 = Browser::match_opera("Opera/9.80 (Windows NT 6.1; WOW64; U; pt) Presto/2.10.229 Version/11.62");
+        assert_eq!(opera11, Some((11, 62)))
     }
 }

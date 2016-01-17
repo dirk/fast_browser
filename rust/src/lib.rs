@@ -74,29 +74,3 @@ pub extern fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
 pub extern fn free_string(string: *mut c_char) {
     drop(unsafe { CString::from_raw(string) })
 }
-
-#[cfg(test)]
-mod tests {
-    use super::browser::Browser;
-
-    #[test]
-    fn test_match_firefox() {
-        let did_match = Browser::match_firefox("Firefox/1.2");
-        assert_eq!(did_match, Some((1, 2)));
-
-        let didnt_match = Browser::match_firefox("NotFirefox/x.y");
-        assert_eq!(didnt_match, None)
-    }
-
-    #[test]
-    fn test_match_safari() {
-        let version7 = Browser::match_safari("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A");
-        assert_eq!(version7, Some((7, 0)));
-
-        let version5 = Browser::match_safari("Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us) AppleWebKit/534.1+ (KHTML, like Gecko) Version/5.0 Safari/533.16");
-        assert_eq!(version5, Some((5, 0)));
-
-        let mobile_version6 = Browser::match_safari("Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5355d Safari/8536.25");
-        assert_eq!(mobile_version6, Some((6, 0)))
-    }
-}
