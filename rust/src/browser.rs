@@ -25,9 +25,12 @@ type Matcher = (BrowserFamily, Box<MatcherFn>);
 lazy_static! {
     // NOTE: Order of tests is significant
     static ref MATCH_SEQUENCE: Vec<Matcher> = vec![
-        (BrowserFamily::Opera,  Box::new(Browser::match_opera)),
-        (BrowserFamily::Edge,   Box::new(Browser::match_edge)),
-        (BrowserFamily::Chrome, Box::new(Browser::match_chrome)),
+        (BrowserFamily::Opera,        Box::new(Browser::match_opera)),
+        (BrowserFamily::Edge,         Box::new(Browser::match_edge)),
+        (BrowserFamily::Chrome,       Box::new(Browser::match_chrome)),
+        (BrowserFamily::Firefox,      Box::new(Browser::match_firefox)),
+        (BrowserFamily::MobileSafari, Box::new(Browser::match_mobile_safari)),
+        (BrowserFamily::Safari,       Box::new(Browser::match_safari)),
     ];
 }
 
@@ -52,26 +55,7 @@ impl Browser {
             }
         }
 
-        let matched_firefox = Browser::match_firefox(ua);
-        let matched_safari  = Browser::match_safari(ua);
-
-        return (
-            if let Some(versions) = matched_firefox {
-                Browser::new(BrowserFamily::Firefox, versions)
-
-            } else if let Some(versions) = matched_safari {
-                let family =
-                    if ua.contains("Mobile/") {
-                        BrowserFamily::MobileSafari
-                    } else {
-                        BrowserFamily::Safari
-                    };
-                Browser::new(family, versions)
-
-            } else {
-                Browser::new(BrowserFamily::Other, (0, 0))
-            }
-        )
+        return Browser::new(BrowserFamily::Other, (0, 0))
     }
 
     /// Takes the first two capture groups from a regex result and turns them into a version
@@ -92,11 +76,11 @@ impl Browser {
 }
 
 lazy_static! {
-    static ref CHROME_REGEX: Regex        = Regex::new(r"(?:Chromium|Chrome)/(\d+)\.(\d+)").unwrap();
-    static ref EDGE_REGEX: Regex          = Regex::new(r"Edge/(\d+)\.(\d+)").unwrap();
-    static ref FIREFOX_REGEX: Regex       = Regex::new(r"Firefox/(\d+)\.(\d+)").unwrap();
-    static ref OPERA_VERSION_REGEX: Regex = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
-    static ref SAFARI_REGEX: Regex        = Regex::new(r"Version/(\d+)\.(\d+)(?:\.\d+)?(?: Mobile/\w+)? Safari").unwrap();
+    static ref CHROME_REGEX: Regex         = Regex::new(r"(?:Chromium|Chrome)/(\d+)\.(\d+)").unwrap();
+    static ref EDGE_REGEX: Regex           = Regex::new(r"Edge/(\d+)\.(\d+)").unwrap();
+    static ref FIREFOX_REGEX: Regex        = Regex::new(r"Firefox/(\d+)\.(\d+)").unwrap();
+    static ref OPERA_VERSION_REGEX: Regex  = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
+    static ref SAFARI_VERSION_REGEX: Regex = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
 }
 
 impl Browser {
@@ -122,12 +106,17 @@ impl Browser {
     }
 
     pub fn match_safari(ua: &str) -> Option<(i8, i8)> {
-        // SAFARI_REGEX is sort of expensive so we shortcut it with a simple search first
-        if !ua.contains("Safari") {
-            return None
-        }
+        if !ua.contains("Safari") { return None }
+        if ua.contains("Mobile/") { return None }
 
-        Browser::match_versions(ua, &SAFARI_REGEX)
+        Browser::match_versions(ua, &SAFARI_VERSION_REGEX)
+    }
+
+    pub fn match_mobile_safari(ua: &str) -> Option<(i8, i8)> {
+        if !ua.contains("Safari")  { return None }
+        if !ua.contains("Mobile/") { return None }
+
+        Browser::match_versions(ua, &SAFARI_VERSION_REGEX)
     }
 }
 
@@ -172,8 +161,11 @@ mod tests {
 
         let version_5 = Browser::match_safari(SAFARI_5);
         assert_eq!(version_5, Some((5, 0)));
+    }
 
-        let mobile_version_6 = Browser::match_safari(MOBILE_SAFARI_6);
+    #[test]
+    fn test_match_mobile_safari() {
+        let mobile_version_6 = Browser::match_mobile_safari(MOBILE_SAFARI_6);
         assert_eq!(mobile_version_6, Some((6, 0)))
     }
 
