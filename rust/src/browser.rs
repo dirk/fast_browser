@@ -12,6 +12,7 @@ pub enum BrowserFamily {
     Other,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Browser {
     pub family: BrowserFamily,
     pub major_version: i8,
@@ -132,7 +133,28 @@ impl Browser {
 
 #[cfg(test)]
 mod tests {
-    use super::Browser;
+    use super::{Browser, BrowserFamily};
+
+    type StaticStr = &'static str;
+
+    const OPERA_12: StaticStr        = "Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16";
+    const OPERA_11: StaticStr        = "Opera/9.80 (Windows NT 6.1; WOW64; U; pt) Presto/2.10.229 Version/11.62";
+    const SAFARI_7: StaticStr        = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A";
+    const SAFARI_5: StaticStr        = "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us) AppleWebKit/534.1+ (KHTML, like Gecko) Version/5.0 Safari/533.16";
+    const MOBILE_SAFARI_6: StaticStr = "Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5355d Safari/8536.25";
+
+    #[test]
+    fn test_parse_safari() {
+        assert_eq!(
+            Browser::new(BrowserFamily::Safari, (7, 0)),
+            Browser::parse(SAFARI_7)
+        );
+
+        assert_eq!(
+            Browser::new(BrowserFamily::MobileSafari, (6, 0)),
+            Browser::parse(MOBILE_SAFARI_6)
+        )
+    }
 
     #[test]
     fn test_match_firefox() {
@@ -145,22 +167,22 @@ mod tests {
 
     #[test]
     fn test_match_safari() {
-        let version7 = Browser::match_safari("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A");
-        assert_eq!(version7, Some((7, 0)));
+        let version_7 = Browser::match_safari(SAFARI_7);
+        assert_eq!(version_7, Some((7, 0)));
 
-        let version5 = Browser::match_safari("Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us) AppleWebKit/534.1+ (KHTML, like Gecko) Version/5.0 Safari/533.16");
-        assert_eq!(version5, Some((5, 0)));
+        let version_5 = Browser::match_safari(SAFARI_5);
+        assert_eq!(version_5, Some((5, 0)));
 
-        let mobile_version6 = Browser::match_safari("Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5355d Safari/8536.25");
-        assert_eq!(mobile_version6, Some((6, 0)))
+        let mobile_version_6 = Browser::match_safari(MOBILE_SAFARI_6);
+        assert_eq!(mobile_version_6, Some((6, 0)))
     }
 
     #[test]
     fn test_match_opera() {
-        let opera12 = Browser::match_opera("Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16");
-        assert_eq!(opera12, Some((12, 16)));
+        let opera_12 = Browser::match_opera(OPERA_12);
+        assert_eq!(opera_12, Some((12, 16)));
 
-        let opera11 = Browser::match_opera("Opera/9.80 (Windows NT 6.1; WOW64; U; pt) Presto/2.10.229 Version/11.62");
-        assert_eq!(opera11, Some((11, 62)))
+        let opera_11 = Browser::match_opera(OPERA_11);
+        assert_eq!(opera_11, Some((11, 62)))
     }
 }
