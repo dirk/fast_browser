@@ -18,4 +18,7 @@ install:
   - make
 
 script:
+  - cd $TRAVIS_BUILD_DIR/rust
+  - cargo test --verbose
+  - cd $TRAVIS_BUILD_DIR
   - bundle exec rspec
