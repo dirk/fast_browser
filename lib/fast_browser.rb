@@ -9,7 +9,7 @@ class FastBrowser
     extend LibraryExtensions
 
     lib_file = "libfast_browser.#{FFI::Platform::LIBSUFFIX}"
-    ffi_lib File.expand_path("../../rust/target/debug/#{lib_file}", __FILE__)
+    ffi_lib File.expand_path("../../ext/fast_browser/#{lib_file}", __FILE__)
 
     %w(chrome edge firefox opera safari).each do |tester|
       attach_function "is_#{tester}".to_sym, [:pointer], :bool
