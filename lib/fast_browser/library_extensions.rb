@@ -6,8 +6,8 @@ class FastBrowser
       attach_function private_name, name, arg_types, :strptr
 
       class_eval <<-BODY
-        def self.#{name}(pointer)
-          call_and_free_string :#{private_name}, pointer
+        def self.#{name}(*args)
+          call_and_free_string :#{private_name}, *args
         end
       BODY
     end

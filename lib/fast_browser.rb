@@ -21,6 +21,7 @@ class FastBrowser
 
     attach_string_returning_function :get_browser_family, [:pointer]
     attach_string_returning_function :get_user_agent, [:pointer]
+    attach_string_returning_function :get_version, []
 
     # Private Rust methods; don't call these directly!
     attach_function :_parse_user_agent, :parse_user_agent, [:string], :pointer
@@ -59,4 +60,10 @@ class FastBrowser
   def minor_version; RustLib.get_browser_minor_version(@pointer) end
   def family;        RustLib.get_browser_family(@pointer) end
   def user_agent;    RustLib.get_user_agent(@pointer) end
+end
+
+if FastBrowser::RustLib.get_version != FastBrowser::VERSION
+  e = FastBrowser::VERSION
+  g = FastBrowser::RustLib.get_version
+  raise "Rust library version doesn't match Ruby gem version (expected #{e}, got #{g})"
 end

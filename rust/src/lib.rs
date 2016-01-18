@@ -100,3 +100,10 @@ pub extern fn get_user_agent(ua: *const UserAgent) -> *mut c_char {
 pub extern fn free_string(string: *mut c_char) {
     drop(unsafe { CString::from_raw(string) })
 }
+
+const VERSION: &'static str = "0.0.1";
+
+#[no_mangle]
+pub extern fn get_version() -> *const c_char {
+    CString::new(VERSION).unwrap().into_raw()
+}
