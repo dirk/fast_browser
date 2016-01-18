@@ -1,3 +1,6 @@
 .DS_Store
 Cargo.lock
+Makefile
+mkmf.log
+ext/fast_browser
 rust/target
