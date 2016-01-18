@@ -87,6 +87,14 @@ pub extern fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
     CString::new(family).unwrap().into_raw()
 }
 
+/// Returns the original user agent that was parsed as a `CString` (must free later)
+#[no_mangle]
+pub extern fn get_user_agent(ua: *const UserAgent) -> *mut c_char {
+    let ref ua = UserAgent::borrow_from_c(ua);
+
+    CString::new(ua.source.clone()).unwrap().into_raw()
+}
+
 /// Free a `CString` pointer owned by Rust
 #[no_mangle]
 pub extern fn free_string(string: *mut c_char) {

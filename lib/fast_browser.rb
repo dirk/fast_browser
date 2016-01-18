@@ -20,6 +20,7 @@ class FastBrowser
     attach_function :is_mobile, [:pointer], :bool
 
     attach_string_returning_function :get_browser_family, [:pointer]
+    attach_string_returning_function :get_user_agent, [:pointer]
 
     # Private Rust methods; don't call these directly!
     attach_function :_parse_user_agent, :parse_user_agent, [:string], :pointer
@@ -57,4 +58,5 @@ class FastBrowser
   def major_version; RustLib.get_browser_major_version(@pointer) end
   def minor_version; RustLib.get_browser_minor_version(@pointer) end
   def family;        RustLib.get_browser_family(@pointer) end
+  def user_agent;    RustLib.get_user_agent(@pointer) end
 end

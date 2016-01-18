@@ -5,6 +5,9 @@ use browser::Browser;
 pub struct UserAgent {
     pub browser: Option<Browser>,
     pub bot: Option<Bot>,
+
+    /// The string that was parsed to determine the browser, bot, etc.
+    pub source: String,
 }
 
 impl UserAgent {
@@ -15,6 +18,7 @@ impl UserAgent {
         UserAgent {
             browser: browser,
             bot: bot,
+            source: ua.to_owned(),
         }
     }
 

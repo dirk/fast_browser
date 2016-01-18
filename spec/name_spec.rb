@@ -33,4 +33,13 @@ describe FastBrowser do
 
     expect(browser.mobile?).to eq false
   end
+
+  describe '#user_agent' do
+    it 'returns the original user agent' do
+      nonsense = 'abc123'
+      browser  = FastBrowser.new nonsense
+
+      expect(browser.user_agent).to eq nonsense
+    end
+  end
 end
