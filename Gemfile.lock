@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    browser2 (0.0.1)
+    fast_browser (0.0.1)
       ffi (~> 1.9.10)
 
 GEM
@@ -9,6 +9,7 @@ GEM
   specs:
     diff-lcs (1.2.5)
     ffi (1.9.10)
+    rake (10.4.2)
     rspec (3.4.0)
       rspec-core (~> 3.4.0)
       rspec-expectations (~> 3.4.0)
@@ -27,8 +28,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  browser2!
   bundler (~> 1.10)
+  fast_browser!
+  rake (~> 10.4.2)
   rspec (~> 3.4.0)
 
 BUNDLED WITH

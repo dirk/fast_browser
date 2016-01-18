@@ -18,7 +18,12 @@ install:
   - make
 
 script:
+  # Rust tests
   - cd $TRAVIS_BUILD_DIR/rust
-  - cargo test --verbose
+  - cargo test
+  # Ruby specs
   - cd $TRAVIS_BUILD_DIR
   - bundle exec rspec
+  # Check that the gem builds and installs
+  - bundle exec rake install
+  - ruby -e "require 'rubygems'; require 'fast_browser'"

@@ -3,4 +3,5 @@ Cargo.lock
 Makefile
 mkmf.log
 ext/fast_browser
+pkg
 rust/target

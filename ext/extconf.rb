@@ -13,8 +13,11 @@ def sys(cmd, &block)
   end
 end
 
+ROOT      = File.expand_path '..', File.dirname(__FILE__)
+RUST_ROOT = File.join ROOT, 'rust'
+
 puts ' - Checking Rust compiler'
-rustc = sys 'cd rust; rustc --version'
+rustc = sys "cd #{RUST_ROOT}; rustc --version"
 
 if !(rustc.include?('rustc 1.6.0') || rustc.include?('rustc 1.7.0'))
   puts "=> Bad Rust compiler version: #{rustc}"
@@ -28,9 +31,9 @@ puts ' - Creating Makefile'
 File.open('Makefile', 'w') do |f|
   body = [
     "install:",
-    "\tcd rust; cargo build --release",
-    "\tmkdir -p ext/fast_browser",
-    "\tcp rust/target/release/libfast_browser.* ext/fast_browser"
+    "\tcd #{RUST_ROOT}; cargo build --release",
+    "\tmkdir -p #{ROOT}/ext/fast_browser",
+    "\tcp #{RUST_ROOT}/target/release/libfast_browser.* #{ROOT}/ext/fast_browser"
   ]
   f.puts(body.join("\n") + "\n")
 end
