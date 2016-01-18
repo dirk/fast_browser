@@ -4,8 +4,10 @@ extern crate lazy_static;
 extern crate libc;
 extern crate regex;
 
+mod bot;
 mod browser;
 mod user_agent;
+mod util;
 
 use libc::c_char;
 use std::ffi::{CStr, CString};
@@ -46,30 +48,32 @@ is_family!(is_opera,   BrowserFamily::Opera);
 is_family!(is_safari,  BrowserFamily::Safari);
 
 #[no_mangle]
-pub extern fn get_browser_major_version(ua: *const UserAgent) -> i8 {
-    if let Some(ref browser) = UserAgent::borrow_from_c(ua).browser {
-        browser.major_version
-    } else {
-        0
+pub extern fn is_mobile(ua: *const UserAgent) -> bool {
+    let ua = UserAgent::borrow_from_c(ua);
+
+    match ua.browser {
+        Some(ref b) => b.family.is_mobile(),
+        _ => false
     }
 }
 
 #[no_mangle]
+pub extern fn get_browser_major_version(ua: *const UserAgent) -> i8 {
+    UserAgent::borrow_from_c(ua).browser.clone().map_or(0, |b| b.major_version)
+}
+
+#[no_mangle]
 pub extern fn get_browser_minor_version(ua: *const UserAgent) -> i8 {
-    if let Some(ref browser) = UserAgent::borrow_from_c(ua).browser {
-        browser.minor_version
-    } else {
-        0
-    }
+    UserAgent::borrow_from_c(ua).browser.clone().map_or(0, |b| b.minor_version)
 }
 
 /// Returns the user agent's browser family name as a heap-allocated `CString`
 #[no_mangle]
 pub extern fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
-    let ref browser = UserAgent::borrow_from_c(ua).browser;
+    let browser = UserAgent::borrow_from_c(ua).browser.clone();
 
     let family =
-        if let &Some(ref browser) = browser {
+        browser.map_or("Other", |browser| {
             match browser.family {
                 BrowserFamily::Chrome       => "Chrome",
                 BrowserFamily::Edge         => "Edge",
@@ -77,11 +81,8 @@ pub extern fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
                 BrowserFamily::Opera        => "Opera",
                 BrowserFamily::Safari       => "Safari",
                 BrowserFamily::MobileSafari => "Mobile Safari",
-                BrowserFamily::Other        => "Other",
             }
-        } else {
-            ""
-        };
+        });
 
     CString::new(family).unwrap().into_raw()
 }

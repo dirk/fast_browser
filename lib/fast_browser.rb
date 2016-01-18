@@ -17,6 +17,7 @@ class FastBrowser
 
     attach_function :get_browser_minor_version, [:pointer], :int8
     attach_function :get_browser_major_version, [:pointer], :int8
+    attach_function :is_mobile, [:pointer], :bool
 
     attach_string_returning_function :get_browser_family, [:pointer]
 
@@ -51,6 +52,7 @@ class FastBrowser
   def firefox?; RustLib.is_firefox(@pointer) end
   def opera?;   RustLib.is_opera(@pointer)   end
   def safari?;  RustLib.is_safari(@pointer)  end
+  def mobile?;  RustLib.is_mobile(@pointer)  end
 
   def major_version; RustLib.get_browser_major_version(@pointer) end
   def minor_version; RustLib.get_browser_minor_version(@pointer) end

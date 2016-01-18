@@ -1,5 +1,6 @@
-use regex::{Captures, Regex};
-use std::str::FromStr;
+use regex::{Regex};
+
+use util::map_first_captures;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum BrowserFamily {
@@ -9,7 +10,15 @@ pub enum BrowserFamily {
     Opera,
     Safari,
     MobileSafari,
-    Other,
+}
+
+impl BrowserFamily {
+    pub fn is_mobile(&self) -> bool {
+        match self {
+            &BrowserFamily::MobileSafari => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -44,26 +53,20 @@ impl Browser {
     }
 
     #[allow(unused_parens)]
-    pub fn parse(ua: &str) -> Browser {
+    pub fn parse(ua: &str) -> Option<Browser> {
         // NOTE: Order of these tests is significant because browser vendors are terrible
 
         for tuple in MATCH_SEQUENCE.iter() {
             let &(ref family, ref matcher) = tuple;
 
             if let Some(versions) = matcher(ua) {
-                return Browser::new(family.clone(), versions)
+                let browser = Browser::new(family.clone(), versions);
+
+                return Some(browser)
             }
         }
 
-        return Browser::new(BrowserFamily::Other, (0, 0))
-    }
-
-    /// Takes the first two capture groups from a regex result and turns them into a version
-    /// integer 2-tuple
-    fn map_first_captures(captures: Captures) -> (i8, i8) {
-        let major_version = i8::from_str(&captures[1]).unwrap();
-        let minor_version = i8::from_str(&captures[2]).unwrap();
-        (major_version, minor_version)
+        return None
     }
 
     /// Take a regex and attempt to match it to the browser. The regex must include two capture
@@ -71,7 +74,7 @@ impl Browser {
     fn match_versions(ua: &str, regex: &Regex) -> Option<(i8, i8)> {
         regex
             .captures(ua)
-            .map(Browser::map_first_captures)
+            .map(map_first_captures)
     }
 }
 
@@ -136,12 +139,12 @@ mod tests {
     fn test_parse_safari() {
         assert_eq!(
             Browser::new(BrowserFamily::Safari, (7, 0)),
-            Browser::parse(SAFARI_7)
+            Browser::parse(SAFARI_7).unwrap()
         );
 
         assert_eq!(
             Browser::new(BrowserFamily::MobileSafari, (6, 0)),
-            Browser::parse(MOBILE_SAFARI_6)
+            Browser::parse(MOBILE_SAFARI_6).unwrap()
         )
     }
 

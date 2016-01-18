@@ -1,16 +1,20 @@
 use std::mem;
-use super::browser::Browser;
+use bot::Bot;
+use browser::Browser;
 
 pub struct UserAgent {
     pub browser: Option<Browser>,
+    pub bot: Option<Bot>,
 }
 
 impl UserAgent {
     pub fn parse(ua: &str) -> UserAgent {
         let browser = Browser::parse(ua);
+        let bot     = Bot::parse(ua);
 
         UserAgent {
-            browser: Some(browser),
+            browser: browser,
+            bot: bot,
         }
     }
 
