@@ -79,7 +79,7 @@ impl Browser {
 }
 
 lazy_static! {
-    static ref CHROME_REGEX: Regex         = Regex::new(r"(?:Chromium|Chrome)/(\d+)\.(\d+)").unwrap();
+    static ref CHROME_REGEX: Regex         = Regex::new(r"Chrom(?:ium|e)/(\d+)\.(\d+)").unwrap();
     static ref EDGE_REGEX: Regex           = Regex::new(r"Edge/(\d+)\.(\d+)").unwrap();
     static ref FIREFOX_REGEX: Regex        = Regex::new(r"Firefox/(\d+)\.(\d+)").unwrap();
     static ref OPERA_VERSION_REGEX: Regex  = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
@@ -101,9 +101,7 @@ impl Browser {
     }
 
     pub fn match_opera(ua: &str) -> Option<(i8, i8)> {
-        if !ua.contains("Opera") {
-            return None
-        }
+        if !ua.contains("Opera") { return None }
 
         Browser::match_versions(ua, &OPERA_VERSION_REGEX)
     }
