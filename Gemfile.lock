@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    fast_browser (0.0.1)
+    fast_browser (0.1.0)
       ffi (~> 1.9.10)
 
 GEM
