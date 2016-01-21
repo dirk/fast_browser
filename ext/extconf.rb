@@ -19,9 +19,18 @@ RUST_ROOT = File.join ROOT, 'rust'
 puts ' - Checking Rust compiler'
 rustc = sys "cd #{RUST_ROOT}; rustc --version"
 
-if !(rustc.include?('rustc 1.6.0') || rustc.include?('rustc 1.7.0'))
+allowed_versions = [
+  'rustc 1.6.0',
+  'rustc 1.7.0',
+  'rustc 1.8.0',
+]
+
+if allowed_versions.none? {|v| rustc.include? v }
   puts "=> Bad Rust compiler version: #{rustc}"
-  puts '   Version 1.6.0 or 1.7.0 is required.'
+  puts '   One of the following versions is required:'
+  allowed_versions.each do |v|
+    puts "     - #{v}"
+  end
 
   raise "Invalid Rust compiler version"
 end
