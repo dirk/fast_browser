@@ -12,13 +12,20 @@ pub struct UserAgent {
 
 impl UserAgent {
     pub fn parse(ua: &str) -> UserAgent {
-        let browser = Browser::parse(ua);
-        let bot     = Bot::parse(ua);
+        let mut bot: Option<Bot>         = None;
+        let mut browser: Option<Browser> = None;
+
+        if let Some(has_bot) = Bot::parse(ua) {
+            bot = Some(has_bot);
+        } else {
+            // Only try to parse for a browser if it isn't a bot
+            browser = Browser::parse(ua)
+        }
 
         UserAgent {
             browser: browser,
-            bot: bot,
-            source: ua.to_owned(),
+            bot:     bot,
+            source:  ua.to_owned(),
         }
     }
 
