@@ -7,30 +7,41 @@ require 'browser'
 require 'ruby-prof'
 
 class TestCompare < Minitest::Test
-  TIMES = 50_000
+  TIMES = 10_000
 
   FIREFOX_40 = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'
+  SAFARI_7   = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A'
 
   def test_compare_with_browser
-    ua = FIREFOX_40
+    ua1 = FIREFOX_40
+    ua2 = SAFARI_7
     result = nil
 
     # Make sure the Rust lib is hot
-    _ = FastBrowser.new ua
+    _ = FastBrowser.new ua1
+    _ = FastBrowser.new ua2
 
     test_browser = lambda do
       TIMES.times do
-        b = Browser.new user_agent: ua
-        assert_equal b.firefox?, true
-        assert_equal "40", b.version
+        b1 = Browser.new user_agent: ua1
+        assert_equal b1.firefox?, true
+        assert_equal "40", b1.version
+
+        b2 = Browser.new user_agent: ua2
+        assert_equal b2.safari?, true
+        assert_equal "7", b2.version
       end
     end
 
     test_fast_browser = lambda do
       TIMES.times do
-        b = FastBrowser.new ua
-        assert_equal b.firefox?, true
-        assert_equal 40, b.major_version
+        b1 = FastBrowser.new ua1
+        assert_equal b1.firefox?, true
+        assert_equal 40, b1.major_version
+
+        b2 = FastBrowser.new ua2
+        assert_equal b2.safari?, true
+        assert_equal 7, b2.major_version
       end
     end
 
