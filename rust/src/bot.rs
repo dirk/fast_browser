@@ -5,6 +5,8 @@ use util::map_first_captures;
 pub enum BotName {
     Baidu,
     Bingbot,
+    DuckDuckBot,
+    Go, // Go language's HTTP package
     Googlebot,
 }
 
@@ -66,6 +68,8 @@ lazy_static! {
         Box::new(Bot::match_googlebot),
         Box::new(Bot::match_bingbot),
         Bot::make_matcher("Baidu", BotName::Baidu),
+        Bot::make_matcher("DuckDuckBot", BotName::DuckDuckBot),
+        Bot::make_matcher("Go-http-client", BotName::Go),
     ];
 }
 
