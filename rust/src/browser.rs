@@ -4,6 +4,7 @@ use util::map_first_captures;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum BrowserFamily {
+    Android,
     Chrome,
     Edge,
     Firefox,
@@ -14,8 +15,9 @@ pub enum BrowserFamily {
 
 impl BrowserFamily {
     pub fn is_mobile(&self) -> bool {
-        match self {
-            &BrowserFamily::MobileSafari => true,
+        match *self {
+            BrowserFamily::Android      => true,
+            BrowserFamily::MobileSafari => true,
             _ => false,
         }
     }
@@ -36,6 +38,7 @@ lazy_static! {
     static ref MATCH_SEQUENCE: Vec<Matcher> = vec![
         (BrowserFamily::Opera,        Box::new(Browser::match_opera)),
         (BrowserFamily::Edge,         Box::new(Browser::match_edge)),
+        (BrowserFamily::Android,      Box::new(Browser::match_android)),
         (BrowserFamily::Chrome,       Box::new(Browser::match_chrome)),
         (BrowserFamily::Firefox,      Box::new(Browser::match_firefox)),
         (BrowserFamily::MobileSafari, Box::new(Browser::match_mobile_safari)),
@@ -54,8 +57,6 @@ impl Browser {
 
     #[allow(unused_parens)]
     pub fn parse(ua: &str) -> Option<Browser> {
-        // NOTE: Order of these tests is significant because browser vendors are terrible
-
         for tuple in MATCH_SEQUENCE.iter() {
             let &(ref family, ref matcher) = tuple;
 
@@ -79,14 +80,21 @@ impl Browser {
 }
 
 lazy_static! {
-    static ref CHROME_REGEX: Regex         = Regex::new(r"Chrom(?:ium|e)/(\d+)\.(\d+)").unwrap();
-    static ref EDGE_REGEX: Regex           = Regex::new(r"Edge/(\d+)\.(\d+)").unwrap();
-    static ref FIREFOX_REGEX: Regex        = Regex::new(r"Firefox/(\d+)\.(\d+)").unwrap();
-    static ref OPERA_VERSION_REGEX: Regex  = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
-    static ref SAFARI_VERSION_REGEX: Regex = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
+    static ref CHROME_REGEX: Regex          = Regex::new(r"Chrom(?:ium|e)/(\d+)\.(\d+)").unwrap();
+    static ref EDGE_REGEX: Regex            = Regex::new(r"Edge/(\d+)\.(\d+)").unwrap();
+    static ref FIREFOX_REGEX: Regex         = Regex::new(r"Firefox/(\d+)\.(\d+)").unwrap();
+    static ref OPERA_VERSION_REGEX: Regex   = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
+    static ref SAFARI_VERSION_REGEX: Regex  = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
+    static ref ANDROID_VERSION_REGEX: Regex = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
 }
 
 impl Browser {
+    pub fn match_android(ua: &str) -> Option<(i8, i8)> {
+        if !ua.contains("Android") { return None }
+
+        Browser::match_versions(ua, &ANDROID_VERSION_REGEX)
+    }
+
     pub fn match_edge(ua: &str) -> Option<(i8, i8)> {
         Browser::match_versions(ua, &EDGE_REGEX)
     }
@@ -127,6 +135,7 @@ mod tests {
 
     type StaticStr = &'static str;
 
+    const ANDROID_4: StaticStr       = "Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30";
     const OPERA_12: StaticStr        = "Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16";
     const OPERA_11: StaticStr        = "Opera/9.80 (Windows NT 6.1; WOW64; U; pt) Presto/2.10.229 Version/11.62";
     const SAFARI_7: StaticStr        = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A";
@@ -144,6 +153,12 @@ mod tests {
             Browser::new(BrowserFamily::MobileSafari, (6, 0)),
             Browser::parse(MOBILE_SAFARI_6).unwrap()
         )
+    }
+
+    #[test]
+    fn test_match_android() {
+        let does_match = Browser::match_android(ANDROID_4);
+        assert_eq!(does_match, Some((4, 0)));
     }
 
     #[test]

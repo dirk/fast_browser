@@ -75,6 +75,7 @@ pub extern fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
     let family =
         browser.map_or("Other", |browser| {
             match browser.family {
+                BrowserFamily::Android      => "Android",
                 BrowserFamily::Chrome       => "Chrome",
                 BrowserFamily::Edge         => "Edge",
                 BrowserFamily::Firefox      => "Firefox",
