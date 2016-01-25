@@ -14,4 +14,5 @@ else
 fi
 
 set -x
+mkdir -p ../ext/fast_browser
 cargo build $CARGO_ARGS && cp target/$TARGET/libfast_browser.$NATIVE_EXT ../ext/fast_browser/libfast_browser.$NATIVE_EXT
