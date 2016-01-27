@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 describe FastBrowser do
+  let(:chrome)        { 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36' }
   let(:firefox)       { 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1' }
   let(:mobile_safari) { 'Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5355d Safari/8536.25' }
 
@@ -11,7 +12,7 @@ describe FastBrowser do
   end
 
   it 'parses Chrome name' do
-    browser = FastBrowser.new 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
+    browser = FastBrowser.new chrome
 
     expect(browser.family).to eq 'Chrome'
   end
