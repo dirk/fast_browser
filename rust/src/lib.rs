@@ -4,15 +4,16 @@ extern crate lazy_static;
 extern crate libc;
 extern crate regex;
 
+use libc::c_char;
+use std::ffi::{CStr, CString};
+
 mod bot;
 mod browser;
 mod user_agent;
 mod util;
 
-use libc::c_char;
-use std::ffi::{CStr, CString};
-use self::browser::BrowserFamily;
-use self::user_agent::UserAgent;
+use browser::BrowserFamily;
+use user_agent::UserAgent;
 
 #[no_mangle]
 pub extern fn parse_user_agent(cstring: *const c_char) -> *const UserAgent {
@@ -70,18 +71,21 @@ pub extern fn get_browser_minor_version(ua: *const UserAgent) -> i8 {
 /// Returns the user agent's browser family name as a heap-allocated `CString`
 #[no_mangle]
 pub extern fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
+    use browser::BrowserFamily::*;
+
     let browser = UserAgent::borrow_from_c(ua).browser.clone();
 
     let family =
         browser.map_or("Other", |browser| {
             match browser.family {
-                BrowserFamily::Android      => "Android",
-                BrowserFamily::Chrome       => "Chrome",
-                BrowserFamily::Edge         => "Edge",
-                BrowserFamily::Firefox      => "Firefox",
-                BrowserFamily::Opera        => "Opera",
-                BrowserFamily::Safari       => "Safari",
-                BrowserFamily::MobileSafari => "Mobile Safari",
+                Android      => "Android",
+                Chrome       => "Chrome",
+                Edge         => "Edge",
+                Firefox      => "Firefox",
+                Opera        => "Opera",
+                OperaMini    => "Opera Mini",
+                Safari       => "Safari",
+                MobileSafari => "Mobile Safari",
             }
         });
 

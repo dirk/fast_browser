@@ -9,6 +9,7 @@ pub enum BrowserFamily {
     Edge,
     Firefox,
     Opera,
+    OperaMini,
     Safari,
     MobileSafari,
 }
@@ -18,6 +19,7 @@ impl BrowserFamily {
         match *self {
             BrowserFamily::Android      => true,
             BrowserFamily::MobileSafari => true,
+            BrowserFamily::OperaMini    => true,
             _ => false,
         }
     }
@@ -36,6 +38,7 @@ type Matcher = (BrowserFamily, Box<MatcherFn>);
 lazy_static! {
     // NOTE: Order of tests is significant
     static ref MATCH_SEQUENCE: Vec<Matcher> = vec![
+        (BrowserFamily::OperaMini,    Box::new(Browser::match_opera_mini)),
         (BrowserFamily::Opera,        Box::new(Browser::match_opera)),
         (BrowserFamily::Edge,         Box::new(Browser::match_edge)),
         (BrowserFamily::Android,      Box::new(Browser::match_android)),
@@ -83,6 +86,7 @@ lazy_static! {
     static ref CHROME_REGEX: Regex          = Regex::new(r"Chrom(?:ium|e)/(\d+)\.(\d+)").unwrap();
     static ref EDGE_REGEX: Regex            = Regex::new(r"Edge/(\d+)\.(\d+)").unwrap();
     static ref FIREFOX_REGEX: Regex         = Regex::new(r"Firefox/(\d+)\.(\d+)").unwrap();
+    static ref OPERA_MINI_REGEX: Regex      = Regex::new(r"Opera Mini/(\d+)\.(\d+)").unwrap();
     static ref OPERA_VERSION_REGEX: Regex   = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
     static ref SAFARI_VERSION_REGEX: Regex  = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
     static ref ANDROID_VERSION_REGEX: Regex = Regex::new(r"Version/(\d+)\.(\d+)").unwrap();
@@ -106,6 +110,10 @@ impl Browser {
 
     pub fn match_chrome(ua: &str) -> Option<(i8, i8)> {
         Browser::match_versions(ua, &CHROME_REGEX)
+    }
+
+    pub fn match_opera_mini(ua: &str) -> Option<(i8, i8)> {
+        Browser::match_versions(ua, &OPERA_MINI_REGEX)
     }
 
     pub fn match_opera(ua: &str) -> Option<(i8, i8)> {
@@ -138,6 +146,7 @@ mod tests {
     const ANDROID_4: StaticStr       = "Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30";
     const OPERA_12: StaticStr        = "Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16";
     const OPERA_11: StaticStr        = "Opera/9.80 (Windows NT 6.1; WOW64; U; pt) Presto/2.10.229 Version/11.62";
+    const OPERA_MINI_9: StaticStr    = "Opera/9.80 (J2ME/MIDP; Opera Mini/9.80 (S60; SymbOS; Opera Mobi/23.348; U; en) Presto/2.5.25 Version/10.54";
     const SAFARI_7: StaticStr        = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A";
     const SAFARI_5: StaticStr        = "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us) AppleWebKit/534.1+ (KHTML, like Gecko) Version/5.0 Safari/533.16";
     const MOBILE_SAFARI_6: StaticStr = "Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5355d Safari/8536.25";
@@ -192,5 +201,11 @@ mod tests {
 
         let opera_11 = Browser::match_opera(OPERA_11);
         assert_eq!(opera_11, Some((11, 62)))
+    }
+
+    #[test]
+    fn test_match_opera_mini() {
+        let opera_mini_9 = Browser::match_opera_mini(OPERA_MINI_9);
+        assert_eq!(opera_mini_9, Some((9, 80)))
     }
 }
