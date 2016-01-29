@@ -71,23 +71,8 @@ pub extern fn get_browser_minor_version(ua: *const UserAgent) -> i8 {
 /// Returns the user agent's browser family name as a heap-allocated `CString`
 #[no_mangle]
 pub extern fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
-    use browser::BrowserFamily::*;
-
     let browser = UserAgent::borrow_from_c(ua).browser.clone();
-
-    let family =
-        browser.map_or("Other", |browser| {
-            match browser.family {
-                Android      => "Android",
-                Chrome       => "Chrome",
-                Edge         => "Edge",
-                Firefox      => "Firefox",
-                Opera        => "Opera",
-                OperaMini    => "Opera Mini",
-                Safari       => "Safari",
-                MobileSafari => "Mobile Safari",
-            }
-        });
+    let family  = browser.map_or("Other".to_owned(), |b| b.to_string());
 
     CString::new(family).unwrap().into_raw()
 }

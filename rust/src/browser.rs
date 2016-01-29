@@ -16,11 +16,26 @@ pub enum BrowserFamily {
 
 impl BrowserFamily {
     pub fn is_mobile(&self) -> bool {
+        use self::BrowserFamily::*;
+
         match *self {
-            BrowserFamily::Android      => true,
-            BrowserFamily::MobileSafari => true,
-            BrowserFamily::OperaMini    => true,
+            Android      => true,
+            MobileSafari => true,
+            OperaMini    => true,
             _ => false,
+        }
+    }
+}
+
+
+impl ToString for BrowserFamily {
+    fn to_string(&self) -> String {
+        use self::BrowserFamily::*;
+
+        match *self {
+            OperaMini    => "Opera Mini".to_owned(),
+            MobileSafari => "Mobile Safari".to_owned(),
+            _ => format!("{:?}", self),
         }
     }
 }
@@ -79,6 +94,12 @@ impl Browser {
         regex
             .captures(ua)
             .map(map_first_captures)
+    }
+}
+
+impl ToString for Browser {
+    fn to_string(&self) -> String {
+        self.family.to_string()
     }
 }
 
@@ -207,5 +228,11 @@ mod tests {
     fn test_match_opera_mini() {
         let opera_mini_9 = Browser::match_opera_mini(OPERA_MINI_9);
         assert_eq!(opera_mini_9, Some((9, 80)))
+    }
+
+    #[test]
+    fn test_to_string() {
+        let opera = Browser::new(BrowserFamily::Opera, (0, 0));
+        assert_eq!(opera.to_string(), "Opera".to_owned())
     }
 }
