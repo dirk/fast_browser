@@ -11,7 +11,7 @@ class FastBrowser
     lib_file = "libfast_browser.#{FFI::Platform::LIBSUFFIX}"
     ffi_lib File.expand_path("../../ext/fast_browser/#{lib_file}", __FILE__)
 
-    %w(chrome edge firefox opera safari).each do |tester|
+    %w(chrome edge firefox opera safari bot).each do |tester|
       attach_function "is_#{tester}".to_sym, [:pointer], :bool
     end
 
@@ -55,6 +55,8 @@ class FastBrowser
   def opera?;   RustLib.is_opera(@pointer)   end
   def safari?;  RustLib.is_safari(@pointer)  end
   def mobile?;  RustLib.is_mobile(@pointer)  end
+
+  def bot?;     RustLib.is_bot(@pointer)     end
 
   def major_version; RustLib.get_browser_major_version(@pointer) end
   def minor_version; RustLib.get_browser_minor_version(@pointer) end

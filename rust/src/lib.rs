@@ -54,7 +54,17 @@ pub extern fn is_mobile(ua: *const UserAgent) -> bool {
 
     match ua.browser {
         Some(ref b) => b.family.is_mobile(),
-        _ => false
+        _ => false,
+    }
+}
+
+#[no_mangle]
+pub extern fn is_bot(ua: *const UserAgent) -> bool {
+    let ua = UserAgent::borrow_from_c(ua);
+
+    match ua.bot {
+        Some(_) => true,
+        _ => false,
     }
 }
 
