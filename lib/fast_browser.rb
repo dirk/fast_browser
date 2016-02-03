@@ -19,6 +19,7 @@ class FastBrowser
     attach_function :get_browser_major_version, [:pointer], :int8
     attach_function :is_mobile, [:pointer], :bool
 
+    attach_string_returning_function :get_bot_name, [:pointer]
     attach_string_returning_function :get_browser_family, [:pointer]
     attach_string_returning_function :get_user_agent, [:pointer]
     attach_string_returning_function :get_version, []
@@ -58,10 +59,11 @@ class FastBrowser
 
   def bot?;     RustLib.is_bot(@pointer)     end
 
+  def bot_name;      RustLib.get_bot_name(@pointer)              end
+  def family;        RustLib.get_browser_family(@pointer)        end
   def major_version; RustLib.get_browser_major_version(@pointer) end
   def minor_version; RustLib.get_browser_minor_version(@pointer) end
-  def family;        RustLib.get_browser_family(@pointer) end
-  def user_agent;    RustLib.get_user_agent(@pointer) end
+  def user_agent;    RustLib.get_user_agent(@pointer)            end
 end
 
 if FastBrowser::RustLib.get_version != FastBrowser::VERSION

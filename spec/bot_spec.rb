@@ -10,4 +10,12 @@ describe FastBrowser do
       expect(browser.bot?).to eq true
     end
   end
+
+  describe '#botname' do
+    it 'returns "Googlebot" for Googlebot' do
+      browser = FastBrowser.new googlebot
+
+      expect(browser.bot_name).to eq 'Googlebot'
+    end
+  end
 end

@@ -10,7 +10,13 @@ pub enum BotName {
     Googlebot,
 }
 
-#[derive(Debug, PartialEq)]
+impl ToString for BotName {
+    fn to_string(&self) -> String {
+        format!("{:?}", self)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct Bot {
     pub name: BotName,
 }

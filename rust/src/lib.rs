@@ -81,10 +81,18 @@ pub extern fn get_browser_minor_version(ua: *const UserAgent) -> i8 {
 /// Returns the user agent's browser family name as a heap-allocated `CString`
 #[no_mangle]
 pub extern fn get_browser_family(ua: *const UserAgent) -> *mut c_char {
-    let browser = UserAgent::borrow_from_c(ua).browser.clone();
-    let family  = browser.map_or("Other".to_owned(), |b| b.to_string());
+    let family = UserAgent::borrow_from_c(ua).browser.clone()
+        .map_or("Other".to_owned(), |browser| browser.to_string());
 
     CString::new(family).unwrap().into_raw()
+}
+
+#[no_mangle]
+pub extern fn get_bot_name(ua: *const UserAgent) -> *mut c_char {
+    let name = UserAgent::borrow_from_c(ua).bot.clone()
+        .map_or("Other".to_owned(), |bot| bot.name.to_string());
+
+    CString::new(name).unwrap().into_raw()
 }
 
 /// Returns the original user agent that was parsed as a `CString` (must free later)
