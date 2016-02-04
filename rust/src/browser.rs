@@ -27,7 +27,6 @@ impl BrowserFamily {
     }
 }
 
-
 impl ToString for BrowserFamily {
     fn to_string(&self) -> String {
         use self::BrowserFamily::*;

@@ -12,7 +12,12 @@ pub enum BotName {
 
 impl ToString for BotName {
     fn to_string(&self) -> String {
-        format!("{:?}", self)
+        use self::BotName::*;
+
+        match *self {
+            Go => "Go HTTP package".to_owned(),
+            _ => format!("{:?}", self)
+        }
     }
 }
 
