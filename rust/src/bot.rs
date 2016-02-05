@@ -41,20 +41,6 @@ impl Bot {
         None
     }
 
-    fn match_googlebot(ua: &str) -> Option<Bot> {
-        GOOGLEBOT_REGEX
-            .captures(ua)
-            .map(map_first_captures)
-            .map(|_| Bot::new(BotName::Googlebot))
-    }
-
-    fn match_bingbot(ua: &str) -> Option<Bot> {
-        BINGBOT_REGEX
-            .captures(ua)
-            .map(map_first_captures)
-            .map(|_| Bot::new(BotName::Bingbot))
-    }
-
     fn make_matcher(search: &str, name: BotName) -> Box<Fn(&str) -> Option<Bot> + Sync> {
         let search = search.to_owned();
 
@@ -66,22 +52,35 @@ impl Bot {
             }
         })
     }
+
+    fn make_version_regex_matcher(regex: Regex, name: BotName)
+                                  -> Box<Fn(&str) -> Option<Bot> + Sync> {
+        Box::new(move |ua: &str| {
+            regex
+                .captures(ua)
+                .map(map_first_captures)
+                .map(|_| Bot::new(name.clone()))
+        })
+    }
+
 }
 
 type MatcherFn = Fn(&str) -> Option<Bot> + Sync;
 type Matcher = Box<MatcherFn>;
 
 lazy_static! {
-    static ref BINGBOT_REGEX: Regex   = Regex::new(r"bingbot/(\d+)\.(\d+)").unwrap();
-    static ref GOOGLEBOT_REGEX: Regex = Regex::new(r"Googlebot/(\d+)\.(\d+)").unwrap();
+    static ref MATCH_SEQUENCE: Vec<Matcher> = {
+        let bingbot_regex: Regex   = Regex::new(r"bingbot/(\d+)\.(\d+)").unwrap();
+        let googlebot_regex: Regex = Regex::new(r"Googlebot/(\d+)\.(\d+)").unwrap();
 
-    static ref MATCH_SEQUENCE: Vec<Matcher> = vec![
-        Box::new(Bot::match_googlebot),
-        Box::new(Bot::match_bingbot),
-        Bot::make_matcher("Baidu", BotName::Baidu),
-        Bot::make_matcher("DuckDuckBot", BotName::DuckDuckBot),
-        Bot::make_matcher("Go-http-client", BotName::Go),
-    ];
+        vec![
+            Bot::make_version_regex_matcher(googlebot_regex, BotName::Googlebot),
+            Bot::make_version_regex_matcher(bingbot_regex, BotName::Bingbot),
+            Bot::make_matcher("Baidu", BotName::Baidu),
+            Bot::make_matcher("DuckDuckBot", BotName::DuckDuckBot),
+            Bot::make_matcher("Go-http-client", BotName::Go),
+        ]
+    };
 }
 
 #[cfg(test)]
