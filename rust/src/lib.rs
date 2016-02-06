@@ -9,6 +9,7 @@ use std::ffi::{CStr, CString};
 
 mod bot;
 mod browser;
+mod platform;
 mod user_agent;
 mod util;
 
