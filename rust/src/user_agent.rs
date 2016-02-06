@@ -1,10 +1,12 @@
 use std::mem;
 use bot::Bot;
 use browser::Browser;
+use platform::Platform;
 
 pub struct UserAgent {
     pub browser: Option<Browser>,
     pub bot: Option<Bot>,
+    pub platform: Option<Platform>,
 
     /// The string that was parsed to determine the browser, bot, etc.
     pub source: String,
@@ -23,9 +25,10 @@ impl UserAgent {
         }
 
         UserAgent {
-            browser: browser,
-            bot:     bot,
-            source:  ua.to_owned(),
+            browser:  browser,
+            bot:      bot,
+            platform: Platform::parse(ua),
+            source:   ua.to_owned(),
         }
     }
 
