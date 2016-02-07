@@ -1,4 +1,5 @@
 use regex::{Error as RegexError, Regex};
+use std::str::FromStr;
 
 use self::MatchPattern::*;
 
@@ -14,14 +15,14 @@ pub enum PlatformName {
 #[derive(Debug, PartialEq)]
 pub struct Platform {
     pub name: PlatformName,
-    pub major_version: u8,
-    pub minor_version: u8,
+    pub major_version: i8,
+    pub minor_version: i8,
 }
 
 impl Platform {
     pub fn new(name: PlatformName,
-               major_version: u8,
-               minor_version: u8) -> Platform {
+               major_version: i8,
+               minor_version: i8) -> Platform {
         Platform {
             name: name,
             major_version: major_version,
@@ -31,8 +32,24 @@ impl Platform {
 
     pub fn parse(ua: &str) -> Option<Platform> {
         for &(ref match_pattern, ref name, major, minor) in MATCH_SEQUENCE.iter() {
+            let mut major = major;
+            let mut minor = minor;
+
             let matched = match match_pattern {
-                &MatchRegex(ref regex) => regex.is_match(ua),
+                &MatchRegex(ref regex) => {
+                    if let Some(captures) = regex.captures(ua) {
+                        // `len()` returns 3 when there are 2 capture groups
+                        // because it's including the full match as well
+                        // as a capture
+                        if captures.len() == 3 {
+                            major = i8::from_str(&captures[1]).unwrap();
+                            minor = i8::from_str(&captures[2]).unwrap();
+                        }
+                        true
+                    } else {
+                        false
+                    }
+                },
                 &MatchString(ref string) => ua.contains(string),
             };
 
@@ -60,16 +77,16 @@ impl MatchPattern {
     }
 }
 
-type MatchTuple = (MatchPattern, PlatformName, u8, u8);
+type MatchTuple = (MatchPattern, PlatformName, i8, i8);
 
 lazy_static! {
     static ref MATCH_SEQUENCE: Vec<MatchTuple> = {
         use self::PlatformName::*;
 
-        let ios_pattern = r"CPU (:?iPhone )?OS [0-9]_[0-9](:?_[0-9])? like Mac OS X";
+        let ios_pattern = r"CPU (?:iPhone )?OS ([0-9])_([0-9])(?:_[0-9])? like Mac OS X";
 
         vec![
-            (MatchPattern::with_regex(ios_pattern).unwrap(), IOS,     0, 0),
+            (MatchPattern::with_regex(ios_pattern).unwrap(), IOS,     -1, -1),
             (MatchPattern::with_str("Android"),              Android, 0, 0),
             (MatchPattern::with_str("Linux"),                Linux,   0, 0),
             (MatchPattern::with_str("Macintosh"),            Mac,     0, 0),
@@ -80,6 +97,7 @@ lazy_static! {
             (MatchPattern::with_str("Windows NT 6.2"),       Windows, 8, 0),
             (MatchPattern::with_str("Windows NT 6.3"),       Windows, 8, 1),
             (MatchPattern::with_str("Windows NT 10.0"),      Windows, 10, 0),
+            (MatchPattern::with_str("Windows"),              Windows, 0, 0), // Match any other Windows
         ]
     };
 }
@@ -105,7 +123,7 @@ mod tests {
     fn matches_ios_802() {
         assert_eq!(
             Platform::parse(IOS_802),
-            Some(Platform::new(IOS, 0, 0))
+            Some(Platform::new(IOS, 8, 0))
         )
     }
 
