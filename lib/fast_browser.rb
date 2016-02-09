@@ -50,6 +50,8 @@ class FastBrowser
     @pointer = RustLib.parse_user_agent(string)
   end
 
+  # Boolean methods
+  def bot?;     RustLib.is_bot(@pointer)     end
   def chrome?;  RustLib.is_chrome(@pointer)  end
   def edge?;    RustLib.is_edge(@pointer)    end
   def firefox?; RustLib.is_firefox(@pointer) end
@@ -57,13 +59,18 @@ class FastBrowser
   def safari?;  RustLib.is_safari(@pointer)  end
   def mobile?;  RustLib.is_mobile(@pointer)  end
 
-  def bot?;     RustLib.is_bot(@pointer)     end
+  # General methods
+  def bot_name;   RustLib.get_bot_name(@pointer)   end
+  def user_agent; RustLib.get_user_agent(@pointer) end
 
-  def bot_name;      RustLib.get_bot_name(@pointer)              end
-  def family;        RustLib.get_browser_family(@pointer)        end
-  def major_version; RustLib.get_browser_major_version(@pointer) end
-  def minor_version; RustLib.get_browser_minor_version(@pointer) end
-  def user_agent;    RustLib.get_user_agent(@pointer)            end
+  # Browser-related methods
+  def browser_family;        RustLib.get_browser_family(@pointer)        end
+  def browser_major_version; RustLib.get_browser_major_version(@pointer) end
+  def browser_minor_version; RustLib.get_browser_minor_version(@pointer) end
+
+  alias_method :family,        :browser_family
+  alias_method :major_version, :browser_major_version
+  alias_method :minor_version, :browser_minor_version
 end
 
 if FastBrowser::RustLib.get_version != FastBrowser::VERSION
