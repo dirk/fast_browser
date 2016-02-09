@@ -23,4 +23,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'bundler', '~> 1.10'
   s.add_development_dependency 'rake', '~> 10.4.2'
   s.add_development_dependency 'rspec', '~> 3.4.0'
+  s.add_development_dependency 'pry', '~> 0.10.3'
+  s.add_development_dependency 'get_process_mem', '~> 0.2.0'
 end
