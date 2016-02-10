@@ -83,23 +83,25 @@ lazy_static! {
     static ref MATCH_SEQUENCE: Vec<MatchTuple> = {
         use self::PlatformName::*;
 
-        let ios_pattern = r"CPU (?:iPhone )?OS (\d+)_(\d+)(?:_\d+)? like Mac OS X";
-        let mac_pattern = r"Mac OS X (\d+)_(\d+)(?:_\d+)?";
+        let android_pattern = r"Android (\d+)\.(\d+)(?:\.\d+)?";
+        let ios_pattern     = r"CPU (?:iPhone )?OS (\d+)_(\d+)(?:_\d+)? like Mac OS X";
+        let mac_pattern     = r"Mac OS X (\d+)_(\d+)(?:_\d+)?";
 
         vec![
-            (MatchPattern::with_regex(ios_pattern).unwrap(), IOS,     -1, -1),
-            (MatchPattern::with_regex(mac_pattern).unwrap(), Mac,     -1, -1),
-            (MatchPattern::with_str("Android"),              Android, 0, 0),
-            (MatchPattern::with_str("Linux"),                Linux,   0, 0),
-            (MatchPattern::with_str("Macintosh"),            Mac,     0, 0),
-            (MatchPattern::with_str("Windows XP"),           Windows, 5, 1),
-            (MatchPattern::with_str("Windows NT 5.1"),       Windows, 5, 1), // Also Windows XP
-            (MatchPattern::with_str("Windows NT 6.0"),       Windows, 6, 0), // Windows Vista
-            (MatchPattern::with_str("Windows NT 6.1"),       Windows, 7, 0),
-            (MatchPattern::with_str("Windows NT 6.2"),       Windows, 8, 0),
-            (MatchPattern::with_str("Windows NT 6.3"),       Windows, 8, 1),
-            (MatchPattern::with_str("Windows NT 10.0"),      Windows, 10, 0),
-            (MatchPattern::with_str("Windows"),              Windows, 0, 0), // Match any other Windows
+            (MatchPattern::with_regex(android_pattern).unwrap(), Android, -1, -1),
+            (MatchPattern::with_regex(ios_pattern).unwrap(),     IOS,     -1, -1),
+            (MatchPattern::with_regex(mac_pattern).unwrap(),     Mac,     -1, -1),
+            (MatchPattern::with_str("Android"),                  Android, 0, 0),
+            (MatchPattern::with_str("Linux"),                    Linux,   0, 0),
+            (MatchPattern::with_str("Macintosh"),                Mac,     0, 0),
+            (MatchPattern::with_str("Windows XP"),               Windows, 5, 1),
+            (MatchPattern::with_str("Windows NT 5.1"),           Windows, 5, 1), // Also Windows XP
+            (MatchPattern::with_str("Windows NT 6.0"),           Windows, 6, 0), // Windows Vista
+            (MatchPattern::with_str("Windows NT 6.1"),           Windows, 7, 0),
+            (MatchPattern::with_str("Windows NT 6.2"),           Windows, 8, 0),
+            (MatchPattern::with_str("Windows NT 6.3"),           Windows, 8, 1),
+            (MatchPattern::with_str("Windows NT 10.0"),          Windows, 10, 0),
+            (MatchPattern::with_str("Windows"),                  Windows, 0, 0), // Match any other Windows
         ]
     };
 }
@@ -110,6 +112,7 @@ mod tests {
     use super::PlatformName::*;
 
     const ANDROID_444: &'static str = "Mozilla/5.0 (Linux; Android 4.4.4; One Build/KTU84L.H4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.135 Mobile Safari/537.36";
+    const ANDROID_23: &'static str  = "Mozilla/5.0 (Linux; U; Android 2.3; en-us) AppleWebKit/999+ (KHTML, like Gecko) Safari/999.9";
     const IOS_802: &'static str     = "Mozilla/5.0 (iPhone; CPU iPhone OS 8_0_2 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12A366 Safari/600.1.4";
     const MAC_1093: &'static str    = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A";
     const WINDOWS_81: &'static str  = "Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko";
@@ -118,7 +121,15 @@ mod tests {
     fn matches_android_444() {
         assert_eq!(
             Platform::parse(ANDROID_444),
-            Some(Platform::new(Android, 0, 0))
+            Some(Platform::new(Android, 4, 4))
+        )
+    }
+
+    #[test]
+    fn matches_android_23() {
+        assert_eq!(
+            Platform::parse(ANDROID_23),
+            Some(Platform::new(Android, 2, 3))
         )
     }
 
